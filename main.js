@@ -1,13 +1,25 @@
-console.log("hi");
-
 let data;
 let mainData;
 let selectedData;
 
 let x = 10;
 let y = 10;
-let offset = 50;
+let offset = 300;
 
+let artistsOccurrence = {};
+let neighborhoods = {};
+
+let balls = [];
+
+
+class Ball{
+    constructor(x, y, radius){
+        this.x = x;
+        this.y = y;
+        this.size = 10;
+        this.diameter = radius;
+    }
+}
 
 //https://data.sfgov.org/api/v3/views/wg8w-68vc/query.json
 
@@ -16,79 +28,84 @@ document.addEventListener("DOMContentLoaded", () => {
         method: 'GET',
     })
     .then(response => { return response.json()})
-    .then(resp => {
-        data = resp;
-        console.log(data);
-    });
-    // console.log(data);
+    .then(resp => {data = resp;});
 })
 
 function setup(){
     createCanvas(700, 700);
-    let heading = createElement('h2', "Get a random Mural");
-    heading.style("color", "white");
-    heading.position(width/2, 60);
 }
 
 function card(mural){
-    background(0);
     fill(0, 255, 255);
-    // let street = createElement('p', mural["street_address"]);
-    // let city = createElement('p', mural.city);
-    // let state = createElement('p', mural.state);
-    // let zip = createElement('p', mural["zip_code"]);
-    // let artist = createElement('h2', mural.artist );
-    // let year = createElement('h3', mural.year);
-    let numOfDistricts;
-    let culturalDistricts;
-    let supervisorDistrict;
-    let neighborhood;
 
-    text(mural.artist, width/2 - offset, 80);
-    text(mural.year, width/2 - offset, 110);
+    text(`Artist: ${mural.artist}`, width/2 - offset, 80);
+    text(`Mural Year: ${mural.year}`, width/2 - offset, 110);
     text(`${mural["street_address"]}, ${mural["zip_code"]}`, width/2 - offset, 150);
     text(`${mural.city}, ${mural.state}`, width/2 - offset, 180);
-
-    // artist.position(width/2, 80);
-    // artist.style("color", "white");
+    text(`# of Districts: ${mural["number_of_districts"]}`, width/2 - offset, 210);
+    text(`Neighborhood: ${mural["analysis_neighborhood"]}`, width/2 - offset, 240);
+    text(`Cultural Districts: ${mural["cultural_districts"] ? mural["cultural_districts"] : 'none'}`, width/2 - offset, 270);
+    text(`Supervisor District: ${mural["supervisor_district"]}`, width/2 - offset, 300);
 
 }
 
-function draw(){
-    // clear();
-    background(0);
+function neighborhoodCard(neigh){
     fill(0, 255, 255);
-    if(data && selectedData !== undefined ){
-        console.log(selectedData);
-        
-        card(selectedData);
-        // data.map(mural => {
-        //     const long = mural.the_geom.coordinates[0];
-        //     const lat = mural.the_geom.coordinates[1];
-            
-        // })
 
-        // console.log(data);
 
-        // for(let i = 0; i < data.length; i++) {
-        //     const long = data[i].the_geom.coordinates[0];
-        //     const lat = data[i].the_geom.coordinates[1];
+}
 
-        //     console.log(long + 500, lat + 500);
-            
-        //     ellipse(long + 500, lat+ 500, x, y);
-        // }
+function outputBalls(){
+    fill(255, 255, 255);
+    for(let i =0; i < balls.length; i++){
+        circle(balls[i].x, balls[i].y, balls[i].diameter);
+    }
+}
 
-        
+function draw(){
+    background(0);
+    fill(255, 255, 255);
+    text("Press spacebar to get a random Mural", width/2 - 100, 40);
+
+    fill(0, 255, 255);
+    
+    if(data && selectedData !== undefined ){        
+        card(selectedData);        
+
+        // text(`Artists Occurrence: ${artistsOccurrence[]}`, width - 200, 50);
+        // console.log(artistsOccurrence);
+        // const artistsArray = Object.values(artistsOccurrence);
+        // console.log(artistsArray)
+        if(balls.length > 0) {
+            outputBalls();
+        }
     }
 }
 
 function keyPressed(){
-    
-    if(key === "r"){
+    if(key === " "){
         selectedData = '';
         let randomNum = Math.floor(random(data.length));
 
         selectedData = data[randomNum];
+
+        if(selectedData["analysis_neighborhood"] in neighborhoods){
+            balls.push(new Ball(random(0, 700), random(0, 700), 10))
+            neighborhoods[selectedData["analysis_neighborhood"]] += 1;
+        } else{
+            neighborhoods[selectedData["analysis_neighborhood"]] = 1;
+        }
+
+        // if(selectedData.artist in artistsOccurrence){
+        //     artistsOccurrence[selectedData.artist] += 1;
+        //     artistsOccurrence[selectedData.analysis_neighborhood] += 1;
+        // } else {
+        //     artistsOccurrence[selectedData.artist] = 1;
+        //     artistsOccurrence[selectedData.analysis_neighborhood] = 1;
+        // }
+        
+
+        console.log(neighborhoods);
+
     }
 }
